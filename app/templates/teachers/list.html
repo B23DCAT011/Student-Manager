@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách giáo viên{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h2>👨‍🏫 Danh sách giáo viên</h2>
+  <a href="/teachers/add" class="btn btn-success">➕ Thêm giáo viên mới</a>
+</div>
+
+{% if teachers %}
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+  <thead>
+    <tr style="background-color: #f8f9fa;">
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Mã GV</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Họ tên</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Email</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Số ĐT</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Giới tính</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Chuyên môn</th>
+      <th style="padding: 12px; text-align: center; border: 1px solid #dee2e6;">Hành động</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for teacher in teachers %}
+    <tr>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ teacher.ma_gv }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ teacher.ho_ten }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">
+        {% if teacher.email %}
+        <a href="mailto:{{ teacher.email }}" style="color: #007bff;">{{ teacher.email }}</a>
+        {% else %}
+        Chưa cập nhật
+        {% endif %}
+      </td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">
+        {% if teacher.so_dt %}
+        <a href="tel:{{ teacher.so_dt }}" style="color: #007bff;">{{ teacher.so_dt }}</a>
+        {% else %}
+        Chưa cập nhật
+        {% endif %}
+      </td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ teacher.gioi_tinh or 'Chưa cập nhật' }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ teacher.chuyen_mon or 'Chưa cập nhật' }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+        <a href="/teachers/{{ teacher.ma_gv }}/edit" class="btn btn-secondary" style="margin: 2px;">✏️ Sửa</a>
+
+        <form method="POST" action="/teachers/{{ teacher.ma_gv }}/delete" style="display: inline-block; margin: 2px;"
+          onsubmit="return confirm('⚠️ Bạn có chắc chắn muốn xóa giáo viên {{ teacher.ho_ten }}?')">
+          <button type="submit" class="btn btn-danger">🗑️ Xóa</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div style="margin-top: 20px; color: #6c757d;">
+  <p>📊 Tổng số giáo viên: <strong>{{ teachers|length }}</strong></p>
+</div>
+
+{% else %}
+<div style="text-align: center; padding: 40px; color: #6c757d;">
+  <h3>📭 Chưa có giáo viên nào</h3>
+  <p>Hãy thêm giáo viên đầu tiên của bạn!</p>
+  <a href="/teachers/add" class="btn btn-success">➕ Thêm giáo viên ngay</a>
+</div>
+{% endif %}
+{% endblock %}

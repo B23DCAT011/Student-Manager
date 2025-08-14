@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách sinh viên{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h2>📚 Danh sách sinh viên</h2>
+  <a href="/students/add" class="btn btn-success">➕ Thêm sinh viên mới</a>
+</div>
+
+<!-- Filters -->
+<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6;">
+  <h4 style="margin: 0 0 15px 0; color: #495057;">🔍 Bộ lọc tìm kiếm</h4>
+
+  <form method="GET" action="/students/list" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+    <!-- Filter Mã sinh viên -->
+    <div style="flex: 1; min-width: 200px; margin-right: 15px;">
+      <label for="ma_sv" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+        🆔 Mã sinh viên:
+      </label>
+      <input type="text" id="ma_sv" name="ma_sv" value="{{ request.args.get('ma_sv', '') }}"
+        placeholder="Nhập mã sinh viên..."
+        style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
+    </div>
+
+    <!-- Filter Tên sinh viên -->
+    <div style="flex: 1; min-width: 200px; margin-right: 15px;;">
+      <label for="ho_ten" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+        👤 Tên sinh viên:
+      </label>
+      <input type="text" id="ho_ten" name="ho_ten" value="{{ request.args.get('ho_ten', '') }}"
+        placeholder="Nhập tên sinh viên..."
+        style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
+    </div>
+
+    <!-- Filter Mã lớp -->
+    <div style="flex: 1; min-width: 200px; margin-right: 15px; ">
+      <label for="ma_lop" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+        🏫 Mã lớp:
+      </label>
+      <input type="text" id="ma_lop" name="ma_lop" value="{{ request.args.get('ma_lop', '') }}"
+        placeholder="Nhập mã lớp..."
+        style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
+    </div>
+
+    <!-- Buttons -->
+    <div style="display: flex; gap: 10px;">
+      <button type="submit"
+        style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap;">
+        🔍 Tìm kiếm
+      </button>
+
+      <a href="/students/list"
+        style="background: #6c757d; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; white-space: nowrap; display: inline-block;">
+        🔄 Làm mới
+      </a>
+    </div>
+  </form>
+</div>
+
+{% if students %}
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+  <thead>
+    <tr style="background-color: #f8f9fa;">
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Mã SV</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Họ tên</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Lớp</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Giới tính</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Ngày sinh</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Địa chỉ</th>
+      <th style="padding: 12px; text-align: center; border: 1px solid #dee2e6;">Hành động</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for student in students %}
+    <tr>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ student.ma_sv }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ student.ho_ten }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ student.ma_lop }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ student.gioi_tinh }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">
+        {% if student.ngay_sinh %}
+        {{ student.ngay_sinh.strftime('%d/%m/%Y') }}
+        {% else %}
+        Chưa cập nhật
+        {% endif %}
+      </td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">
+        {{ student.dia_chi or 'Chưa cập nhật' }}
+      </td>
+      <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+        <a href="/students/{{ student.ma_sv }}/edit" class="btn btn-secondary" style="margin: 2px;">✏️ Sửa</a>
+
+        <form method="POST" action="/students/{{ student.ma_sv }}/delete" style="display: inline-block; margin: 2px;"
+          onsubmit="return confirm('⚠️ Bạn có chắc chắn muốn xóa sinh viên {{ student.ho_ten }}?')">
+          <button type="submit" class="btn btn-danger">🗑️ Xóa</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div style="margin-top: 20px; color: #6c757d;">
+  <p>📊 Tổng số sinh viên: <strong>{{ students|length }}</strong></p>
+</div>
+
+{% else %}
+<div style="text-align: center; padding: 40px; color: #6c757d;">
+  <h3>📭 Chưa có sinh viên nào</h3>
+  <p>Hãy thêm sinh viên đầu tiên của bạn!</p>
+  <a href="/students/add" class="btn btn-success">➕ Thêm sinh viên ngay</a>
+</div>
+{% endif %}
+{% endblock %}

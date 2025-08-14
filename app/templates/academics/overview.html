@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý học thuật{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 30px;">
+  <h2>📚 Quản lý học thuật</h2>
+  <p style="color: #6c757d;">Khoa - Ngành - Lớp - Học phần</p>
+</div>
+
+<div
+  style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
+  <!-- Khoa -->
+  <div
+    style="background: #f8f9fa; padding: 25px; border-radius: 8px; text-align: center; border-left: 4px solid #007bff;">
+    <h3>🏛️ Khoa</h3>
+    <p style="font-size: 24px; font-weight: bold; color: #007bff; margin: 10px 0;">{{ khoa_count }}</p>
+    <p style="color: #6c757d; margin-bottom: 15px;">Khoa/Viện</p>
+    <a href="/academics/khoa/list" class="btn btn-primary">Xem danh sách</a>
+  </div>
+
+  <!-- Ngành -->
+  <div
+    style="background: #f8f9fa; padding: 25px; border-radius: 8px; text-align: center; border-left: 4px solid #28a745;">
+    <h3>🎓 Ngành</h3>
+    <p style="font-size: 24px; font-weight: bold; color: #28a745; margin: 10px 0;">{{ nganh_count }}</p>
+    <p style="color: #6c757d; margin-bottom: 15px;">Chuyên ngành</p>
+    <a href="/academics/nganh/list" class="btn btn-success">Xem danh sách</a>
+  </div>
+
+  <!-- Lớp -->
+  <div
+    style="background: #f8f9fa; padding: 25px; border-radius: 8px; text-align: center; border-left: 4px solid #ffc107;">
+    <h3>👥 Lớp</h3>
+    <p style="font-size: 24px; font-weight: bold; color: #ffc107; margin: 10px 0;">{{ lop_count }}</p>
+    <p style="color: #6c757d; margin-bottom: 15px;">Lớp học</p>
+    <a href="/academics/lop/list" style="background: #ffc107; color: white;" class="btn btn-secondary">Xem danh sách</a>
+  </div>
+
+  <!-- Học phần -->
+  <div
+    style="background: #f8f9fa; padding: 25px; border-radius: 8px; text-align: center; border-left: 4px solid #dc3545;">
+    <h3>📖 Học phần</h3>
+    <p style="font-size: 24px; font-weight: bold; color: #dc3545; margin: 10px 0;">{{ hocphan_count }}</p>
+    <p style="color: #6c757d; margin-bottom: 15px;">Môn học</p>
+    <a href="/academics/hocphan/list" style="background: #dc3545; color: white;" class="btn btn-secondary">Xem danh
+      sách</a>
+  </div>
+</div>
+
+<div style="background: #e9ecef; padding: 20px; border-radius: 8px;">
+  <h4>📝 Hướng dẫn sử dụng:</h4>
+  <ul style="margin-top: 10px;">
+    <li><strong>Khoa:</strong> Các khoa/viện trong trường (VD: Khoa CNTT, Khoa Kinh tế...)</li>
+    <li><strong>Ngành:</strong> Các chuyên ngành thuộc từng khoa (VD: Công nghệ thông tin, Kế toán...)</li>
+    <li><strong>Lớp:</strong> Các lớp học cụ thể (VD: CNTT01, KT02...)</li>
+    <li><strong>Học phần:</strong> Các môn học/học phần (VD: Toán cao cấp, Lập trình C++...)</li>
+  </ul>
+</div>
+{% endblock %}

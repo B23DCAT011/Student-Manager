@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Sửa Điểm Cuối kỳ{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>✏️ Sửa Điểm Cuối kỳ</h2>
+    <a href="{{ url_for('grades.list_cuoi_ky') }}"
+      style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+      ← Quay lại danh sách
+    </a>
+  </div>
+
+  <!-- Form sửa điểm cuối kỳ -->
+  <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <form method="POST" id="editFinalGradeForm">
+      {% if data.record %}
+      <!-- Thông tin sinh viên và môn học (không thể sửa) -->
+      <div
+        style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #007bff;">
+        <h4 style="margin: 0 0 10px 0; color: #007bff;">📋 Thông tin cơ bản</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+          <div>
+            <strong>👨‍🎓 Sinh viên:</strong><br>
+            {{ data.record.student.ho_ten }} ({{ data.record.ma_sv }})
+          </div>
+          <div>
+            <strong>📚 Môn học:</strong><br>
+            {{ data.record.hocphan.ten_hp }} ({{ data.record.ma_hp }})
+          </div>
+          <div>
+            <strong>👨‍🏫 Giáo viên:</strong><br>
+            {{ data.record.teacher.ho_ten if data.record.teacher else 'Chưa phân công' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden fields để giữ khóa chính -->
+      <input type="hidden" name="ma_sv" value="{{ data.record.ma_sv }}">
+      <input type="hidden" name="ma_hp" value="{{ data.record.ma_hp }}">
+
+      <!-- Form fields có thể sửa -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+
+        <!-- Điểm học phần -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+            🎯 Điểm học phần: <span style="color: red;">*</span>
+          </label>
+          <input type="number" name="diem_hp" step="0.1" min="0" max="10"
+            value="{{ data.record.diem_hp if data.record.diem_hp else '' }}"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+            oninput="updateGradePreview()" required>
+          <small style="color: #6c757d;">Thang điểm từ 0 đến 10</small>
+        </div>
+      </div>
+
+      <!-- Điểm preview -->
+      <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
+        <h4 style="margin: 0; color: #1976d2;">📊 Xếp loại điểm</h4>
+        <div id="gradePreview" style="font-size: 24px; font-weight: bold; color: #1976d2; margin-top: 10px;">
+          --
+        </div>
+        <small style="color: #666;">Tự động cập nhật khi nhập điểm</small>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">
+        <button type="submit"
+          style="background: #007bff; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+          💾 Cập nhật điểm
+        </button>
+        <a href="{{ url_for('grades.list_cuoi_ky') }}"
+          style="background: #6c757d; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-size: 16px;">
+          ❌ Hủy bỏ
+        </a>
+      </div>
+
+      {% else %}
+      <div style="text-align: center; padding: 40px; color: #dc3545;">
+        <h3>❌ Không tìm thấy điểm cuối kỳ</h3>
+        <p>Điểm cuối kỳ cần sửa không tồn tại hoặc đã bị xóa.</p>
+        <a href="{{ url_for('grades.list_cuoi_ky') }}"
+          style="background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+          Quay lại danh sách
+        </a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<script>
+  function updateGradePreview() {
+    const diem = parseFloat(document.querySelector('input[name="diem_hp"]').value) || 0;
+    const preview = document.getElementById('gradePreview');
+
+    let grade = '';
+    let color = '';
+
+    if (diem >= 8.5) {
+      grade = 'A - Xuất sắc';
+      color = '#28a745';
+    } else if (diem >= 7.0) {
+      grade = 'B - Giỏi';
+      color = '#28a745';
+    } else if (diem >= 5.5) {
+      grade = 'C - Khá';
+      color = '#ffc107';
+    } else if (diem >= 4.0) {
+      grade = 'D - Trung bình';
+      color = '#ffc107';
+    } else {
+      grade = 'F - Không đạt';
+      color = '#dc3545';
+    }
+
+    preview.textContent = grade;
+    preview.style.color = color;
+  }
+
+  // Initialize preview on page load
+  window.addEventListener('load', function () {
+    updateGradePreview();
+  });
+
+  // Form validation
+  document.getElementById('editFinalGradeForm').addEventListener('submit', function (e) {
+    const diem_hp = document.querySelector('input[name="diem_hp"]').value;
+    const ma_gv = document.querySelector('select[name="ma_gv"]').value;
+
+    if (!diem_hp || !ma_gv) {
+      e.preventDefault();
+      alert('Vui lòng điền đầy đủ thông tin!');
+      return false;
+    }
+
+    if (confirm('Bạn có chắc muốn cập nhật điểm cuối kỳ này?')) {
+      return true;
+    } else {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
+
+{% endblock %}

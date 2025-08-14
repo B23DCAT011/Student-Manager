@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách lớp học{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h2>👥 Danh sách lớp học</h2>
+  <a href="/academics" class="btn btn-secondary">← Quay lại tổng quan</a>
+</div>
+
+{% if lops %}
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+  <thead>
+    <tr style="background-color: #f8f9fa;">
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Mã lớp</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Tên lớp</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Ngành</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Khóa học</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Hệ ĐT</th>
+      <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Năm nhập học</th>
+      <th style="padding: 12px; text-align: center; border: 1px solid #dee2e6;">Hành động</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for lop in lops %}
+    <tr>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ lop.ma_lop }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ lop.ten_lop }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ lop.nganh.ten_nganh if lop.nganh else 'Chưa xác định' }}
+      </td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ lop.khoa_hoc or 'Chưa cập nhật' }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ lop.he_dt or 'Chưa cập nhật' }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6;">{{ lop.nam_nhap_hoc or 'Chưa cập nhật' }}</td>
+      <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+        <a href="/students/list?ma_lop={{ lop.ma_lop }}" class="btn btn-primary" style="margin: 2px;">👥 Sinh viên</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div style="margin-top: 20px; color: #6c757d;">
+  <p>📊 Tổng số lớp: <strong>{{ lops|length }}</strong></p>
+</div>
+
+{% else %}
+<div style="text-align: center; padding: 40px; color: #6c757d;">
+  <h3>📭 Chưa có lớp nào</h3>
+  <p>Dữ liệu lớp học sẽ được nhập từ hệ thống quản lý khác.</p>
+</div>
+{% endif %}
+{% endblock %}

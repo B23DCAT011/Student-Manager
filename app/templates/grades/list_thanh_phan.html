@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách Điểm Thành phần{% endblock %}
+
+{% block content %}
+<div style="padding: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>📝 Danh sách Điểm Thành phần</h2>
+    <div>
+      <a href="{{ url_for('grades.add_thanh_phan') }}"
+        style="background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; margin-right: 10px;">
+        + Thêm điểm mới
+      </a>
+      <a href="{{ url_for('grades.dashboard') }}"
+        style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+        ← Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div
+    style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+    <h3>🔍 Bộ lọc</h3>
+    <form method="GET"
+      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px;">
+      <div>
+        <label>Học kỳ:</label>
+        <select name="hoc_ky" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          <option value="1" {% if data.current_filters.hoc_ky=='1' %}selected{% endif %}>Học kỳ 1</option>
+          <option value="2" {% if data.current_filters.hoc_ky=='2' %}selected{% endif %}>Học kỳ 2</option>
+          <option value="3" {% if data.current_filters.hoc_ky=='3' %}selected{% endif %}>Học kỳ 3</option>
+        </select>
+      </div>
+      <div>
+        <label>Năm học:</label>
+        <select name="nam_hoc" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          <option value="2023-2024" {% if data.current_filters.nam_hoc=='2023-2024' %}selected{% endif %}>2023-2024
+          </option>
+          <option value="2024-2025" {% if data.current_filters.nam_hoc=='2024-2025' %}selected{% endif %}>2024-2025
+          </option>
+          <option value="2025-2026" {% if data.current_filters.nam_hoc=='2025-2026' %}selected{% endif %}>2025-2026
+          </option>
+        </select>
+      </div>
+      <div>
+        <label>Lớp:</label>
+        <select name="lop" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          {% if data.lops %}
+          {% for lop in data.lops %}
+          <option value="{{ lop.ma_lop }}" {% if data.current_filters.lop==lop.ma_lop %}selected{% endif %}>
+            {{ lop.ten_lop }} ({{ lop.ma_lop }})
+          </option>
+          {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div>
+        <label>Môn học:</label>
+        <select name="mon_hoc" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          {% if data.hocphans %}
+          {% for hocphan in data.hocphans %}
+          <option value="{{ hocphan.ma_hp }}" {% if data.current_filters.mon_hoc==hocphan.ma_hp %}selected{% endif %}>
+            {{ hocphan.ten_hp }} ({{ hocphan.ma_hp }})
+          </option>
+          {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div>
+        <label>Giáo viên:</label>
+        <select name="giao_vien" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          {% if data.teachers %}
+          {% for teacher in data.teachers %}
+          <option value="{{ teacher.ma_gv }}" {% if data.current_filters.giao_vien==teacher.ma_gv %}selected{% endif %}>
+            {{ teacher.ho_ten }} ({{ teacher.ma_gv }})
+          </option>
+          {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div style="display: flex; align-items: end;">
+        <button type="submit"
+          style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+          Lọc kết quả
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Stats Summary -->
+  <div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #1976d2;">Tổng bản ghi</h4>
+      <p style="font-size: 24px; font-weight: bold; color: #1976d2; margin: 5px 0;">{{ data.total_records or 0 }}</p>
+    </div>
+    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #2e7d32;">Điểm TB</h4>
+      <p style="font-size: 24px; font-weight: bold; color: #2e7d32; margin: 5px 0;">{{ "%.1f"|format(data.average_score
+        or 0) }}</p>
+    </div>
+    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #f57c00;">Cần cải thiện</h4>
+      <p style="font-size: 24px; font-weight: bold; color: #f57c00; margin: 5px 0;">{{ data.low_scores or 0 }}</p>
+    </div>
+    <div style="background: #fce4ec; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #c2185b;">Chưa nhập</h4>
+      <p style="font-size: 24px; font-weight: bold; color: #c2185b; margin: 5px 0;">{{ data.missing_scores or 0 }}</p>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3>📋 Bảng điểm thành phần</h3>
+      <div>
+        <button onclick="exportToExcel()"
+          style="background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+          📊 Xuất Excel
+        </button>
+        <button onclick="bulkImport()"
+          style="background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">
+          📁 Import hàng loạt
+        </button>
+      </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f8f9fa;">
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Mã SV</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Họ tên</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Lớp</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Môn học</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Chuyên cần</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Bài tập</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Giữa kỳ</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if data.thanh_phan_records %}
+          {% for record in data.thanh_phan_records %}
+          <tr>
+            <td style="padding: 12px; border: 1px solid #dee2e6;">{{ record.ma_sv }}</td>
+            <td style="padding: 12px; border: 1px solid #dee2e6;">
+              <strong>{{ record.student.ho_ten if record.student else 'N/A' }}</strong>
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              {{ record.student.lop.ten_lop if record.student and record.student.lop else 'N/A' }}
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              {{ record.hocphan.ten_hp if record.hocphan else 'N/A' }}
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              <span
+                style="font-weight: bold; color: {% if record.diem_chuyen_can >= 8 %}#28a745{% elif record.diem_chuyen_can >= 5 %}#ffc107{% else %}#dc3545{% endif %};">
+                {{ record.diem_chuyen_can or '-' }}
+              </span>
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              <span
+                style="font-weight: bold; color: {% if record.diem_bai_tap >= 8 %}#28a745{% elif record.diem_bai_tap >= 5 %}#ffc107{% else %}#dc3545{% endif %};">
+                {{ record.diem_bai_tap or '-' }}
+              </span>
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              <span
+                style="font-weight: bold; color: {% if record.diem_giua_ky >= 8 %}#28a745{% elif record.diem_giua_ky >= 5 %}#ffc107{% else %}#dc3545{% endif %};">
+                {{ record.diem_giua_ky or '-' }}
+              </span>
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              <a href="{{ url_for('grades.edit_thanh_phan', id=record.id) }}"
+                style="background: #007bff; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer; text-decoration: none; margin: 2px;">
+                ✏️ Sửa
+              </a>
+              <button onclick="deleteRecord({{ record.id }})"
+                style="background: #dc3545; color: white; ; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px;">
+                🗑️ Xóa
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="9" style="padding: 40px; text-align: center; color: #6c757d;">
+              📝 Chưa có dữ liệu điểm thành phần. <a href="{{ url_for('grades.add_thanh_phan') }}">Thêm điểm mới</a>
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if data.pagination %}
+    <div style="margin-top: 20px; text-align: center;">
+      <div style="display: inline-flex; gap: 5px;">
+        {% if data.pagination.has_prev %}
+        <a href="?page={{ data.pagination.prev_num }}"
+          style="padding: 8px 12px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">Trước</a>
+        {% endif %}
+
+        {% for page in data.pagination.iter_pages() %}
+        {% if page %}
+        {% if page != data.pagination.page %}
+        <a href="?page={{ page }}"
+          style="padding: 8px 12px; background: #f8f9fa; color: #007bff; text-decoration: none; border-radius: 4px;">{{
+          page }}</a>
+        {% else %}
+        <span style="padding: 8px 12px; background: #007bff; color: white; border-radius: 4px;">{{ page }}</span>
+        {% endif %}
+        {% else %}
+        <span style="padding: 8px 12px;">...</span>
+        {% endif %}
+        {% endfor %}
+
+        {% if data.pagination.has_next %}
+        <a href="?page={{ data.pagination.next_num }}"
+          style="padding: 8px 12px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">Sau</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  function deleteRecord(id) {
+    if (confirm('Bạn có chắc muốn xóa bản ghi điểm này?')) {
+      // TODO: Implement AJAX delete request
+      //coding
+      fetch('/grades/thanh-phan/delete/' + id, {
+        method: 'POST'
+      })
+        .then(response => {
+          if (response.ok) {
+            alert('Đã xóa bản ghi ID: ' + id);
+            location.reload();
+          } else {
+            alert('Lỗi khi xóa bản ghi ID: ' + id);
+          }
+        });
+    }
+  }
+
+  function exportToExcel() {
+    alert('Đang xuất file Excel...');
+    // TODO: Implement Excel export
+  }
+
+  function bulkImport() {
+    alert('Chức năng import hàng loạt từ Excel');
+    // TODO: Implement bulk import from Excel
+  }
+</script>
+{% endblock %}

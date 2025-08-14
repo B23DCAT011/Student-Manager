@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách Học phần{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+  <h2>📖 Danh sách Học phần</h2>
+  <div>
+    <a href="/academics" class="btn btn-secondary" style="margin-right: 10px;">↩️ Quay lại</a>
+    <a href="/academics/hocphan/add" class="btn btn-success">➕ Thêm Học phần</a>
+  </div>
+</div>
+
+<!-- Thống kê nhanh -->
+<div
+  style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+  <div
+    style="background: linear-gradient(135deg, #dc3545, #bd2130); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+    <h4 style="margin: 0;">📊 Tổng môn học</h4>
+    <p style="margin: 5px 0; font-size: 24px; font-weight: bold;">{{ hocphans|length }}</p>
+  </div>
+  <div
+    style="background: linear-gradient(135deg, #ffc107, #d39e00); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+    <h4 style="margin: 0;">⏱️ Tổng tín chỉ</h4>
+    <p style="margin: 5px 0; font-size: 24px; font-weight: bold;">{{ total_credits }}</p>
+  </div>
+</div>
+
+<!-- Bộ lọc -->
+<div
+  style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+  <form method="GET" style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 15px; align-items: end;">
+    <div>
+      <label style="display: block; margin-bottom: 5px; font-weight: 500;">🔍 Tìm theo tên:</label>
+      <input type="text" name="search" value="{{ request.args.get('search', '') }}" placeholder="Nhập tên học phần..."
+        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+    <div>
+      <label style="display: block; margin-bottom: 5px; font-weight: 500;">⏱️ Số tín chỉ:</label>
+      <select name="dvht" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+        <option value="">-- Tất cả --</option>
+        <option value="1" {% if request.args.get('dvht')=='1' %}selected{% endif %}>1 tín chỉ</option>
+        <option value="2" {% if request.args.get('dvht')=='2' %}selected{% endif %}>2 tín chỉ</option>
+        <option value="3" {% if request.args.get('dvht')=='3' %}selected{% endif %}>3 tín chỉ</option>
+        <option value="4" {% if request.args.get('dvht')=='4' %}selected{% endif %}>4 tín chỉ</option>
+        <option value="5" {% if request.args.get('dvht')=='5' %}selected{% endif %}>5 tín chỉ</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+    <a href="/academics/hocphan/list" class="btn btn-secondary">🔄 Reset</a>
+  </form>
+</div>
+
+<!-- Danh sách học phần -->
+<div style="background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+  {% if hocphans %}
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead style="background: #f8f9fa;">
+      <tr>
+        <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: 600;">Mã HP</th>
+        <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: 600;">Tên Học phần
+        </th>
+        <th style="padding: 15px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: 600;">Tín chỉ</th>
+        <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: 600;">Ngành</th>
+        <th style="padding: 15px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: 600;">Học kỳ</th>
+        <th
+          style="padding: 15px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: 600; width: 150px;">
+          Thao tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for hocphan in hocphans %}
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 15px; font-weight: 500; color: #dc3545;">{{ hocphan.ma_hp }}</td>
+        <td style="padding: 15px; font-weight: 500;">{{ hocphan.ten_hp }}</td>
+        <td style="padding: 15px; text-align: center;">
+          <span
+            style="background: #ffc107; color: #333; padding: 4px 8px; border-radius: 50%; font-weight: bold; font-size: 12px;">
+            {{ hocphan.so_dvht or 'N/A' }}
+          </span>
+        </td>
+        <td style="padding: 15px;">
+          {% if hocphan.nganh %}
+          <span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+            {{ hocphan.nganh.ten_nganh }}
+          </span>
+          {% else %}
+          <em style="color: #adb5bd;">Chưa xác định</em>
+          {% endif %}
+        </td>
+        <td style="padding: 15px; text-align: center;">
+          {% if hocphan.hoc_ky %}
+          <span
+            style="background: #007bff; color: white; padding: 4px 8px; border-radius: 50%; font-weight: bold; font-size: 12px;">
+            {{ hocphan.hoc_ky }}
+          </span>
+          {% else %}
+          <em style="color: #adb5bd;">N/A</em>
+          {% endif %}
+        </td>
+        <td style="padding: 15px; text-align: center;">
+          <a href="/academics/hocphan/{{ hocphan.ma_hp }}/edit" class="btn btn-sm btn-primary"
+            style="margin-right: 5px;">✏️ Sửa</a>
+          <a href="/academics/hocphan/{{ hocphan.ma_hp }}/delete" class="btn btn-sm btn-danger"
+            onclick="return confirm('Bạn có chắc muốn xóa học phần này?')">🗑️ Xóa</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
+    <h4>📭 Chưa có học phần nào</h4>
+    <p>Hãy thêm học phần đầu tiên để bắt đầu quản lý!</p>
+    <a href="/academics/hocphan/add" class="btn btn-success">➕ Thêm Học phần đầu tiên</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Thông tin bổ sung -->
+<div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #dc3545;">
+  <h5 style="color: #dc3545; margin-bottom: 10px;">💡 Ghi chú</h5>
+  <ul style="color: #6c757d; margin: 0; padding-left: 20px;">
+    <li>Học phần là đơn vị cơ bản của chương trình đào tạo</li>
+    <li>ĐVHT = Đơn vị học trình (hiện tại gọi là tín chỉ)</li>
+    <li>Mỗi học phần thuộc về một ngành cụ thể</li>
+    <li>Mã học phần không thể thay đổi sau khi tạo</li>
+  </ul>
+</div>
+{% endblock %}

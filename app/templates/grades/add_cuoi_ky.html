@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Nhập Điểm Cuối kỳ{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>🎯 Nhập Điểm Cuối kỳ</h2>
+    <a href="{{ url_for('grades.list_cuoi_ky') }}"
+      style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+      ← Quay lại danh sách
+    </a>
+  </div>
+
+  <!-- Form nhập điểm cuối kỳ -->
+  <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <form method="POST" id="finalGradeForm">
+      <!-- Form fields -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+
+        <!-- Sinh viên -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+            👨‍🎓 Sinh viên: <span style="color: red;">*</span>
+          </label>
+          <select name="ma_sv" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required>
+            <option value="">-- Chọn sinh viên --</option>
+            {% if data.students %}
+            {% for student in data.students %}
+            <option value="{{ student.ma_sv }}">
+              {{ student.ho_ten }} - {{ student.ma_sv }} ({{ student.lop.ten_lop if student.lop else 'N/A' }})
+            </option>
+            {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+
+        <!-- Môn học -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+            📚 Môn học: <span style="color: red;">*</span>
+          </label>
+          <select name="ma_hp" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required>
+            <option value="">-- Chọn môn học --</option>
+            {% if data.subjects %}
+            {% for subject in data.subjects %}
+            <option value="{{ subject.ma_hp }}">
+              {{ subject.ten_hp }} ({{ subject.ma_hp }}) - {{ subject.so_dvht }} ĐVHT
+            </option>
+            {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+
+        <!-- Giáo viên -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+            👨‍🏫 Giáo viên: <span style="color: red;">*</span>
+          </label>
+          <select name="ma_gv" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required>
+            <option value="">-- Chọn giáo viên --</option>
+            {% if data.teachers %}
+            {% for teacher in data.teachers %}
+            <option value="{{ teacher.ma_gv }}">
+              {{ teacher.ho_ten }} ({{ teacher.ma_gv }})
+            </option>
+            {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+
+        <!-- Điểm học phần -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">
+            🎯 Điểm học phần: <span style="color: red;">*</span>
+          </label>
+          <input type="number" name="diem_hp" step="0.1" min="0" max="10"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+            oninput="updateGradePreview()" required>
+          <small style="color: #6c757d;">Thang điểm từ 0 đến 10</small>
+        </div>
+      </div>
+
+      <!-- Điểm preview -->
+      <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
+        <h4 style="margin: 0; color: #1976d2;">📊 Xếp loại điểm</h4>
+        <div id="gradePreview" style="font-size: 24px; font-weight: bold; color: #1976d2; margin-top: 10px;">
+          --
+        </div>
+        <small style="color: #666;">Tự động cập nhật khi nhập điểm</small>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">
+        <button type="submit"
+          style="background: #28a745; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+          💾 Lưu điểm
+        </button>
+        <a href="{{ url_for('grades.list_cuoi_ky') }}"
+          style="background: #6c757d; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-size: 16px;">
+          ❌ Hủy bỏ
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function updateGradePreview() {
+    const diem = parseFloat(document.querySelector('input[name="diem_hp"]').value) || 0;
+    const preview = document.getElementById('gradePreview');
+
+    let grade = '';
+    let color = '';
+
+    if (diem >= 8.5) {
+      grade = 'A - Xuất sắc';
+      color = '#28a745';
+    } else if (diem >= 7.0) {
+      grade = 'B - Giỏi';
+      color = '#28a745';
+    } else if (diem >= 5.5) {
+      grade = 'C - Khá';
+      color = '#ffc107';
+    } else if (diem >= 4.0) {
+      grade = 'D - Trung bình';
+      color = '#ffc107';
+    } else {
+      grade = 'F - Không đạt';
+      color = '#dc3545';
+    }
+
+    preview.textContent = grade;
+    preview.style.color = color;
+  }
+
+  // Form validation
+  document.getElementById('finalGradeForm').addEventListener('submit', function (e) {
+    const ma_sv = document.querySelector('select[name="ma_sv"]').value;
+    const ma_hp = document.querySelector('select[name="ma_hp"]').value;
+    const diem_hp = document.querySelector('input[name="diem_hp"]').value;
+
+    if (!ma_sv || !ma_hp || !diem_hp) {
+      e.preventDefault();
+      alert('Vui lòng điền đầy đủ thông tin!');
+      return false;
+    }
+
+    if (confirm('Bạn có chắc muốn lưu điểm cuối kỳ này?')) {
+      return true;
+    } else {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
+{% endblock %}
