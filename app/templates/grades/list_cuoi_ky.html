@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách Điểm Cuối kỳ{% endblock %}
+
+{% block content %}
+<div style="padding: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>🎯 Danh sách Điểm Cuối kỳ</h2>
+    <div>
+      <a href="{{ url_for('grades.add_cuoi_ky') }}"
+        style="background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; margin-right: 10px;">
+        + Thêm điểm cuối kỳ
+      </a>
+      <a href="{{ url_for('grades.dashboard') }}"
+        style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+        ← Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div
+    style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+    <h3>🔍 Bộ lọc</h3>
+    <form method="GET"
+      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px;">
+      <div>
+        <label>Học kỳ:</label>
+        <select name="hoc_ky" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          <option value="1" {% if data.current_filters.hoc_ky=='1' %}selected{% endif %}>Học kỳ 1</option>
+          <option value="2" {% if data.current_filters.hoc_ky=='2' %}selected{% endif %}>Học kỳ 2</option>
+          <option value="3" {% if data.current_filters.hoc_ky=='3' %}selected{% endif %}>Học kỳ 3</option>
+        </select>
+      </div>
+      <div>
+        <label>Năm học:</label>
+        <select name="nam_hoc" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          <option value="2023-2024" {% if data.current_filters.nam_hoc=='2023-2024' %}selected{% endif %}>2023-2024
+          </option>
+          <option value="2024-2025" {% if data.current_filters.nam_hoc=='2024-2025' %}selected{% endif %}>2024-2025
+          </option>
+          <option value="2025-2026" {% if data.current_filters.nam_hoc=='2025-2026' %}selected{% endif %}>2025-2026
+          </option>
+        </select>
+      </div>
+      <div>
+        <label>Lớp:</label>
+        <select name="lop" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          {% if data.lops %}
+          {% for lop in data.lops %}
+          <option value="{{ lop.ma_lop }}" {% if data.current_filters.lop==lop.ma_lop %}selected{% endif %}>
+            {{ lop.ten_lop }} ({{ lop.ma_lop }})
+          </option>
+          {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div>
+        <label>Môn học:</label>
+        <select name="mon_hoc" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Tất cả --</option>
+          {% if data.hocphans %}
+          {% for hocphan in data.hocphans %}
+          <option value="{{ hocphan.ma_hp }}" {% if data.current_filters.mon_hoc==hocphan.ma_hp %}selected{% endif %}>
+            {{ hocphan.ten_hp }} ({{ hocphan.ma_hp }})
+          </option>
+          {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div style="display: flex; align-items: end;">
+        <button type="submit"
+          style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+          Lọc kết quả
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Stats Summary -->
+  <div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #1976d2;">Tổng môn</h4>
+      <p style="font-size: 24px; font-weight: bold; color: #1976d2; margin: 5px 0;">{{ data.total_subjects }}</p>
+    </div>
+    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #2e7d32;">Đã qua (≥5.0)</h4>
+      <p style="font-size: 24px; font-weight: bold; color: #2e7d32; margin: 5px 0;">{{ data.passed_count }}</p>
+    </div>
+    <div style="background: #ffebee; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #c62828;">Trượt (<5.0)< /h4>
+          <p style="font-size: 24px; font-weight: bold; color: #c62828; margin: 5px 0;">{{ data.failed_count }}</p>
+    </div>
+    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+      <h4 style="margin: 0; color: #f57c00;">GPA TB</h4>
+      <p style="font-size: 24px; font-weight: bold; color: #f57c00; margin: 5px 0;">{{ "%.2f"|format(data.average_gpa or
+        0) }}</p>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3>📋 Bảng điểm cuối kỳ và tổng kết</h3>
+      <div>
+        <button onclick="exportTranscript()"
+          style="background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+          📄 Xuất bảng điểm
+        </button>
+        <button onclick="exportStatistics()"
+          style="background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">
+          📊 Xuất thống kê
+        </button>
+      </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f8f9fa;">
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Mã SV</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Họ tên</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Lớp</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Môn học</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Điểm HP</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Kết quả</th>
+            <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if data.cuoi_ky_records %}
+          {% for grade in data.cuoi_ky_records %}
+          <tr>
+            <td style="padding: 12px; border: 1px solid #dee2e6;">{{ grade.ma_sv }}</td>
+            <td style="padding: 12px; border: 1px solid #dee2e6;">
+              <strong>{{ grade.student.ho_ten if grade.student else 'N/A' }}</strong>
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              {{ grade.student.lop.ten_lop if grade.student and grade.student.lop else 'N/A' }}
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              {{ grade.hocphan.ten_hp if grade.hocphan else 'N/A' }}
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              <span style="font-weight: bold; font-size: 16px;">{{ grade.diem_hp }}</span>
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              {% if grade.diem_hp and grade.diem_hp >= 5.0 %}
+              <span
+                style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Đạt</span>
+              {% else %}
+              <span
+                style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Trượt</span>
+              {% endif %}
+            </td>
+            <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+              <a href="/grades/cuoi-ky/edit/{{ grade.ma_sv }}/{{ grade.ma_hp }}"
+                style="background: #007bff; color: white; padding: 5px 10px; border-radius: 3px; text-decoration: none; margin: 2px;">
+                ✏️ Sửa
+              </a>
+              <button onclick="deleteGrade('{{ grade.ma_sv }}', '{{ grade.ma_hp }}')"
+                style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px;">
+                🗑️ Xóa
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="10" style="padding: 40px; text-align: center; color: #6c757d;">
+              🎯 Chưa có dữ liệu điểm cuối kỳ. <a href="{{ url_for('grades.add_cuoi_ky') }}">Thêm điểm mới</a>
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  function deleteGrade(ma_sv, ma_hp) {
+    if (confirm('Bạn có chắc muốn xóa điểm cuối kỳ này?\nSinh viên: ' + ma_sv + '\nMôn học: ' + ma_hp)) {
+      // Send AJAX request to delete
+      fetch(`/grades/cuoi-ky/delete/${ma_sv}/${ma_hp}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload(); // Refresh page to see changes
+          } else {
+            alert('❌ Lỗi: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('❌ Có lỗi xảy ra khi xóa điểm!');
+        });
+    }
+  }
+
+  function exportTranscript() {
+    alert('Đang xuất bảng điểm PDF...');
+    // TODO: Implement transcript export
+  }
+
+  function exportStatistics() {
+    alert('Đang xuất thống kê Excel...');
+    // TODO: Implement statistics export
+  }
+</script>
+{% endblock %}

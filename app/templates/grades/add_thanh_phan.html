@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Nhập Điểm Thành phần{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>📝 Nhập Điểm Thành phần</h2>
+    <a href="{{ url_for('grades.list_thanh_phan') }}"
+      style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+      ← Quay lại danh sách
+    </a>
+  </div>
+
+  <!-- Form -->
+  <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <form method="POST" id="gradeForm">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <!-- Thông tin sinh viên -->
+        <div>
+          <label for="ma_sv" style="font-weight: bold; margin-bottom: 5px; display: block;">Mã sinh viên: <span
+              style="color: red;">*</span></label>
+          <select name="ma_sv" id="ma_sv" required
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">-- Chọn sinh viên --</option>
+            {% if data.students %}
+            {% for student in data.students %}
+            <option value="{{ student.ma_sv }}" data-name="{{ student.ho_ten }}"
+              data-class="{{ student.lop.ten_lop if student.lop else '' }}">
+              {{ student.ma_sv }} - {{ student.ho_ten }}
+            </option>
+            {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+
+        <!-- Môn học -->
+        <div>
+          <label for="ma_hp" style="font-weight: bold; margin-bottom: 5px; display: block;">Môn học: <span
+              style="color: red;">*</span></label>
+          <select name="ma_hp" id="ma_hp" required
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">-- Chọn môn học --</option>
+            {% if data.subjects %}
+            {% for subject in data.subjects %}
+            <option value="{{ subject.ma_hp }}">{{ subject.ma_hp }} - {{ subject.ten_hp }}</option>
+            {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <!-- Giáo viên -->
+        <div>
+          <label for="ma_gv" style="font-weight: bold; margin-bottom: 5px; display: block;">Giáo viên: <span
+              style="color: red;">*</span></label>
+          <select name="ma_gv" id="ma_gv" required
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">-- Chọn giáo viên --</option>
+            {% if data.teachers %}
+            {% for teacher in data.teachers %}
+            <option value="{{ teacher.ma_gv }}">{{ teacher.ho_ten }}</option>
+            {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+
+        <!-- Học kỳ -->
+        <div>
+          <label for="hoc_ky" style="font-weight: bold; margin-bottom: 5px; display: block;">Học kỳ: <span
+              style="color: red;">*</span></label>
+          <select name="hoc_ky" id="hoc_ky" required
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">-- Chọn học kỳ --</option>
+            <option value="1">Học kỳ 1</option>
+            <option value="2">Học kỳ 2</option>
+            <option value="3">Học kỳ 3</option>
+          </select>
+        </div>
+
+        <!-- Năm học -->
+        <div>
+          <label for="hoc_ky" style="font-weight: bold; margin-bottom: 5px; display: block;">Học kỳ: <span
+              style="color: red;">*</span></label>
+          <select name="nam_hoc" id="nam_hoc" required
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">-- Chọn năm học --</option>
+            <option value="2023">2023-2024</option>
+            <option value="2024">2024-2025</option>
+            <option value="2025">2025-2026</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Thông tin hiển thị -->
+      <div id="studentInfo"
+        style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: none;">
+        <h4>👤 Thông tin sinh viên đã chọn:</h4>
+        <p><strong>Họ tên:</strong> <span id="studentName">-</span></p>
+        <p><strong>Lớp:</strong> <span id="studentClass">-</span></p>
+      </div>
+
+      <!-- Điểm số -->
+      <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #1976d2;">📊 Nhập điểm thành phần</h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+          <!-- Điểm chuyên cần -->
+          <div>
+            <label for="diem_chuyen_can" style="font-weight: bold; margin-bottom: 5px; display: block;">
+              Điểm chuyên cần (0-10): <span style="color: red;">*</span>
+            </label>
+            <input type="number" name="diem_chuyen_can" id="diem_chuyen_can" min="0" max="10" step="0.1" required
+              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+              oninput="calculateAverage()">
+            <small style="color: #666;">Điểm danh, tham gia lớp</small>
+          </div>
+
+          <!-- Điểm bài tập -->
+          <div>
+            <label for="diem_bai_tap" style="font-weight: bold; margin-bottom: 5px; display: block;">
+              Điểm bài tập (0-10): <span style="color: red;">*</span>
+            </label>
+            <input type="number" name="diem_bai_tap" id="diem_bai_tap" min="0" max="10" step="0.1" required
+              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+              oninput="calculateAverage()">
+            <small style="color: #666;">Bài tập về nhà, thực hành</small>
+          </div>
+
+          <!-- Điểm giữa kỳ -->
+          <div>
+            <label for="diem_giua_ky" style="font-weight: bold; margin-bottom: 5px; display: block;">
+              Điểm giữa kỳ (0-10): <span style="color: red;">*</span>
+            </label>
+            <input type="number" name="diem_giua_ky" id="diem_giua_ky" min="0" max="10" step="0.1" required
+              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+              oninput="calculateAverage()">
+            <small style="color: #666;">Kiểm tra giữa kỳ</small>
+          </div>
+        </div>
+
+        <!-- Điểm trung bình tự động -->
+        <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 6px; text-align: center;">
+          <label style="font-weight: bold; color: #1976d2;">Điểm trung bình thành phần:</label>
+          <div id="averageScore" style="font-size: 24px; font-weight: bold; color: #1976d2; margin-top: 5px;">-</div>
+          <small style="color: #666;">Tự động tính toán khi nhập đủ 3 điểm</small>
+        </div>
+      </div>
+
+      <!-- ML Prediction Display -->
+      <div id="mlPrediction"
+        style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: none;">
+        <h3 style="margin-top: 0; color: #856404;">🤖 Dự đoán AI về nguy cơ trượt môn</h3>
+        <div id="predictionResult" style="font-size: 18px; font-weight: bold; margin: 10px 0;"></div>
+        <div id="predictionDetails" style="font-size: 14px; color: #856404;"></div>
+      </div>
+
+      <!-- Ghi chú -->
+      <div style="margin-bottom: 20px;">
+        <label for="ghi_chu" style="font-weight: bold; margin-bottom: 5px; display: block;">Ghi chú:</label>
+        <textarea name="ghi_chu" id="ghi_chu" rows="3"
+          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+          placeholder="Ghi chú về điểm số (tùy chọn)..."></textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div style="text-align: center; padding-top: 20px; border-top: 1px solid #eee;">
+        <button type="submit"
+          style="background: #28a745; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;">
+          ✅ Lưu điểm
+        </button>
+        <button type="button" onclick="resetForm()"
+          style="background: #6c757d; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;">
+          🔄 Làm mới
+        </button>
+        <a href="{{ url_for('grades.list_thanh_phan') }}"
+          style="background: #dc3545; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; font-size: 16px;">
+          ❌ Hủy bỏ
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Hiển thị thông tin sinh viên khi chọn
+  document.getElementById('ma_sv').addEventListener('change', function () {
+    const selectedOption = this.options[this.selectedIndex];
+    const studentInfo = document.getElementById('studentInfo');
+
+    if (selectedOption.value) {
+      document.getElementById('studentName').textContent = selectedOption.dataset.name || '-';
+      document.getElementById('studentClass').textContent = selectedOption.dataset.class || '-';
+      studentInfo.style.display = 'block';
+    } else {
+      studentInfo.style.display = 'none';
+    }
+  });
+
+  // Tính điểm trung bình và dự đoán ML
+  function calculateAverage() {
+    const cc = parseFloat(document.getElementById('diem_chuyen_can').value) || 0;
+    const bt = parseFloat(document.getElementById('diem_bai_tap').value) || 0;
+    const gk = parseFloat(document.getElementById('diem_giua_ky').value) || 0;
+
+    if (cc > 0 && bt > 0 && gk > 0) {
+      const average = (cc + bt + gk) / 3;
+      const averageEl = document.getElementById('averageScore');
+      averageEl.textContent = average.toFixed(1);
+
+      // Đổi màu theo điểm
+      if (average >= 8) {
+        averageEl.style.color = '#28a745';
+      } else if (average >= 5) {
+        averageEl.style.color = '#ffc107';
+      } else {
+        averageEl.style.color = '#dc3545';
+      }
+
+      // Hiển thị dự đoán ML (giả lập)
+      showMLPrediction(average, cc, bt, gk);
+    } else {
+      document.getElementById('averageScore').textContent = '-';
+      document.getElementById('averageScore').style.color = '#1976d2';
+      document.getElementById('mlPrediction').style.display = 'none';
+    }
+  }
+
+  // Hiển thị dự đoán ML
+  function showMLPrediction(avg, cc, bt, gk) {
+    const mlDiv = document.getElementById('mlPrediction');
+    const resultDiv = document.getElementById('predictionResult');
+    const detailDiv = document.getElementById('predictionDetails');
+
+    // Logic dự đoán đơn giản (thực tế sẽ gọi API ML)
+    let riskLevel = 'Thấp';
+    let riskColor = '#28a745';
+    let advice = '';
+
+    if (avg < 4) {
+      riskLevel = 'Rất cao';
+      riskColor = '#dc3545';
+      advice = 'Cần can thiệp ngay lập tức! Sinh viên có nguy cơ trượt môn rất cao.';
+    } else if (avg < 5) {
+      riskLevel = 'Cao';
+      riskColor = '#fd7e14';
+      advice = 'Cần theo dõi và hỗ trợ thêm. Nguy cơ trượt môn khá cao.';
+    } else if (avg < 6.5) {
+      riskLevel = 'Trung bình';
+      riskColor = '#ffc107';
+      advice = 'Sinh viên cần cố gắng thêm để đạt kết quả tốt hơn.';
+    } else {
+      riskLevel = 'Thấp';
+      riskColor = '#28a745';
+      advice = 'Sinh viên đang có kết quả tốt, tiếp tục duy trì!';
+    }
+
+    resultDiv.innerHTML = `Nguy cơ trượt môn: <span style="color: ${riskColor};">${riskLevel}</span>`;
+    detailDiv.textContent = advice;
+    mlDiv.style.display = 'block';
+  }
+
+  // Reset form
+  function resetForm() {
+    if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu đã nhập?')) {
+      document.getElementById('gradeForm').reset();
+      document.getElementById('studentInfo').style.display = 'none';
+      document.getElementById('averageScore').textContent = '-';
+      document.getElementById('averageScore').style.color = '#1976d2';
+      document.getElementById('mlPrediction').style.display = 'none';
+    }
+  }
+
+  // Validation trước khi submit
+  document.getElementById('gradeForm').addEventListener('submit', function (e) {
+    const cc = parseFloat(document.getElementById('diem_chuyen_can').value) || 0;
+    const bt = parseFloat(document.getElementById('diem_bai_tap').value) || 0;
+    const gk = parseFloat(document.getElementById('diem_giua_ky').value) || 0;
+
+    if (cc < 0 || cc > 10 || bt < 0 || bt > 10 || gk < 0 || gk > 10) {
+      e.preventDefault();
+      alert('Điểm số phải trong khoảng 0-10!');
+      return false;
+    }
+
+    if (!confirm('Xác nhận lưu điểm thành phần cho sinh viên này?')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
+{% endblock %}
