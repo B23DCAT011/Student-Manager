@@ -31,6 +31,7 @@ def process():
         # Trích xuất điểm từ câu hỏi bằng Gemini
         input_data = gemini_extract_grades(question)
         if input_data == question:
+            print('default')
             # Nếu không trích xuất được điểm, trả lời chung chung
             return jsonify({
                 "answer": gemini_generate_answer_default(question)

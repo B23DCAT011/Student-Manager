@@ -2,7 +2,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import google.generativeai as genai
 import os
-import json
+from app.services.RAG.load_model import response
+
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
@@ -50,18 +51,37 @@ def gemini_extract_grades(question: str):
 
     return response.text.strip()
 
+
 def gemini_generate_answer_default(question: str) -> str:
     """
     Trả về câu trả lời chung chung nếu không trích xuất được điểm từ câu hỏi.
     """
-    model = genai.GenerativeModel('gemini-2.0-flash')
+    try:
+        res = response(question)
+        return res
+    except Exception as e:
+        print(f"Error in RAG processing: {e}")
+        return gemini_fallback_answer(question)
 
-    prompt = (
-        f"Bạn là một trợ lý ảo của học viên Công nghệ Bưu Chính Viễn Thông,"
-        f"Hãy trả lời dựa trên câu hỏi của người dùng: {question}."
-        f"Giao tiếp như bình thường nếu không có câu hỏi cụ thể."
-    )
-    response = model.generate_content(prompt)
+def gemini_fallback_answer(question: str) -> str:
+    """
+    Fallback function using direct Gemini API when RAG fails
+    """
+    try:
+        model = genai.GenerativeModel('gemini-2.0-flash')
 
+        prompt = f"""
+        Bạn là một trợ lý AI thông minh cho hệ thống quản lý sinh viên.
 
-    return response.text.strip()
+        Câu hỏi: {question}
+
+        Hãy trả lời câu hỏi bằng tiếng Việt, văn phong thân thiện và chuyên nghiệp.
+        Nếu câu hỏi liên quan đến sinh viên, học tập, điểm số thì hãy đưa ra lời khuyên hữu ích.
+        """
+
+        response = model.generate_content(prompt)
+        return response.text.strip()
+
+    except Exception as e:
+        return f"Xin lỗi, tôi không thể xử lý câu hỏi của bạn lúc này. Lỗi: {str(e)}"
+
