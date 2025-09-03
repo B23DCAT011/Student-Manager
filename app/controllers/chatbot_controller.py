@@ -50,5 +50,7 @@ def process():
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+                "answer": gemini_generate_answer_default(question)
+            })#fix tạm thời bug  nhận biét nhầm câu hỏi từ thông tin sang hỏi điểm
 
